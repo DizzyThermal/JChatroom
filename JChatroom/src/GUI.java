@@ -29,7 +29,7 @@ public class GUI extends JFrame implements KeyListener
 	
 	GUI()
 	{
-		super("ECE 369 - JChatroom (" + Resource.VERSION + ")");
+		super("ECE 369 - JChatroom (" + Resource.VERSION_NUMBER + " - " + Resource.VERSION_CODENAME + ")");
 		FlowLayout fl = new FlowLayout();
 		fl.setAlignment(FlowLayout.LEFT);
 		setLayout(fl);
