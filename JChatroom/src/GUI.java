@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -39,6 +40,9 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static Socket clientSocket;
 	public static PrintWriter pWriter;
 	public static BufferedReader bReader;
+	
+	public final JFileChooser filePick = new JFileChooser();
+	public static File outFile;
 	
 	public static int id;
 	public static String username = "JC-User";
@@ -315,7 +319,9 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	{
 		if (e.getActionCommand().equals("addFile"))
 		{
-			JFileChooser outFile = new JFileChooser();
+			filePick.showOpenDialog(this);
+			outFile = filePick.getSelectedFile();
+			
 		}
 		
 	}

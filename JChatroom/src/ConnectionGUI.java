@@ -77,7 +77,7 @@ public class ConnectionGUI extends JFrame implements ActionListener
 			Resource.IP = address.getText();
 			Resource.PORT = String.valueOf(port.getValue());
 			Resource.FILE_SAVE_DIR = download.getText();
-			
+			this.setVisible(false);
 			GUI.connectionGUIStatus = true;
 		}
 	}
