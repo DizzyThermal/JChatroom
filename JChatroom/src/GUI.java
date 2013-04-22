@@ -1,5 +1,7 @@
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
@@ -11,6 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -18,7 +21,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 
-public class GUI extends JFrame implements KeyListener
+public class GUI extends JFrame implements KeyListener, ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -26,7 +29,6 @@ public class GUI extends JFrame implements KeyListener
 	JScrollPane chatText = new JScrollPane(new JTextArea());
 	JTextField messageField = new JTextField();
 	JButton addImageButton = new JButton("Add Image");
-
 	JPanel rightPanel = new JPanel();
 	JScrollPane users = new JScrollPane(new JTextArea()); 
 	
@@ -136,6 +138,8 @@ public class GUI extends JFrame implements KeyListener
 		users.setPreferredSize(new Dimension(175, 520));
 		((JTextArea)((JViewport)users.getComponent(0)).getView()).setEditable(false);
 		addImageButton.setPreferredSize(new Dimension(175, 25));
+		addImageButton.addActionListener(this);
+		addImageButton.setActionCommand("addFile");
 		
 		rightPanel.add(users);
 		rightPanel.add(addImageButton);
@@ -305,4 +309,14 @@ public class GUI extends JFrame implements KeyListener
 	public void keyTyped(KeyEvent e) {}
 	@Override
 	public void keyReleased(KeyEvent e) {}
+
+	@Override
+	public void actionPerformed(ActionEvent e) 
+	{
+		if (e.getActionCommand().equals("addFile"))
+		{
+			JFileChooser outFile = new JFileChooser();
+		}
+		
+	}
 }
