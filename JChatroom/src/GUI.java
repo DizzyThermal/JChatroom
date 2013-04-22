@@ -61,7 +61,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		ConnectionGUI cGUI = new ConnectionGUI();
 		
 		cGUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		cGUI.setSize(100, 100);
+		cGUI.setSize(300, 250);
 		cGUI.setResizable(false);
 		cGUI.setVisible(true);
 		
