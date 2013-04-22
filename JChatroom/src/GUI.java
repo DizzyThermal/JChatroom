@@ -6,8 +6,16 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -43,6 +51,10 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	
 	public final JFileChooser filePick = new JFileChooser();
 	public static File outFile;
+	public static BufferedOutputStream bOut;
+	public static InputStream inStream;
+	public static ByteArrayOutputStream baos;
+	public static int numBytes = 0;
 	
 	public static int id;
 	public static String username = "JC-User";
@@ -112,6 +124,45 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			}
 		});
 		t1.start();
+		
+		Thread t2 = (new Thread()
+		{
+			@Override
+			public void run()
+			{
+				while(true)
+				{
+					byte[] incomingBytes = new byte[1];
+					try
+					{
+						inStream = clientSocket.getInputStream();
+					}
+					catch(Exception e) { e.printStackTrace(); }
+					
+					baos = new ByteArrayOutputStream();
+					if(!inStream.equals(null))
+					{
+						FileOutputStream fos = null;
+						BufferedOutputStream bos = null;
+						try
+						{
+							fos = new FileOutputStream(Resource.FILE_SAVE_DIR);
+							bos = new BufferedOutputStream(fos);
+							numBytes = inStream.read(incomingBytes, 0, incomingBytes.length);
+							do
+							{
+								baos.write(incomingBytes);
+								numBytes = inStream.read(incomingBytes);
+							} while (numBytes != -1);
+							bos.write(baos.toByteArray());
+							bos.flush();
+							bos.close();
+						} catch(IOException ex) { ex.printStackTrace(); }
+					}
+				}
+			}
+		});
+		t2.start();
 
 		this.addWindowListener(new WindowAdapter()
 		{
@@ -319,9 +370,34 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	{
 		if (e.getActionCommand().equals("addFile"))
 		{
-			filePick.showOpenDialog(this);
-			outFile = filePick.getSelectedFile();
-			
+			if (filePick.showOpenDialog(this) != 0)
+			{
+				outFile = filePick.getSelectedFile();
+				try 
+				{
+					bOut = new BufferedOutputStream(clientSocket.getOutputStream());
+				} 
+				catch (IOException e1) { e1.printStackTrace(); }
+				if (bOut != null)
+				{
+					byte[] outArray = new byte[(int)outFile.length()];
+					FileInputStream fis = null;
+		               try 
+		               {
+		                    fis = new FileInputStream(outFile);
+		                } catch (FileNotFoundException ex) { ex.printStackTrace(); }
+		               
+		                BufferedInputStream bis = new BufferedInputStream(fis);
+
+		                try 
+		                {
+		                    bis.read(outArray, 0, outArray.length);
+		                    bOut.write(outArray, 0, outArray.length);
+		                    bOut.flush();
+		                    bOut.close();
+		                } catch (IOException ex) { ex.printStackTrace(); }
+				}
+			}	
 		}
 		
 	}
