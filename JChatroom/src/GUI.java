@@ -29,10 +29,6 @@ public class GUI extends JFrame implements KeyListener
 
 	JPanel rightPanel = new JPanel();
 	JScrollPane users = new JScrollPane(new JTextArea()); 
-
-	// Generate Traffic and Clear Buttons
-	JButton generateTrafficButton = new JButton("Fire!");
-	JButton resetButton = new JButton("Reset");
 	
 	public static ArrayList<User> userList = new ArrayList<User>();
 	public static ArrayList<String> commands = new ArrayList<String>();
@@ -44,6 +40,8 @@ public class GUI extends JFrame implements KeyListener
 	
 	public static int id;
 	public static String username = "JC-User";
+	
+	public static boolean connectionGUIStatus = false;
 	
 	GUI()
 	{
@@ -57,6 +55,15 @@ public class GUI extends JFrame implements KeyListener
 		
 		add(leftPanel);
 		add(rightPanel);
+		
+		ConnectionGUI cGUI = new ConnectionGUI();
+		
+		cGUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		cGUI.setSize(100, 100);
+		cGUI.setResizable(false);
+		cGUI.setVisible(true);
+		
+		while(!connectionGUIStatus);
 		
 		try
 		{
