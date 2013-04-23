@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -33,8 +34,7 @@ import javax.swing.JViewport;
 
 public class GUI extends JFrame implements KeyListener, ActionListener
 {
-	private static final long serialVersionUID = 1L;
-	
+	private static final long serialVersionUID = 1L;	
 	JPanel leftPanel = new JPanel();
 	JScrollPane chatText = new JScrollPane(new JTextArea());
 	JTextField messageField = new JTextField();
@@ -68,7 +68,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		FlowLayout fl = new FlowLayout();
 		fl.setAlignment(FlowLayout.LEFT);
 		setLayout(fl);
-		
 		createLeftPanel();
 		createRightPanel();
 		
@@ -114,6 +113,8 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 						System.out.println("Message: " + incomingMessage);
 						if(incomingMessage.contains("/userlist"))
 							buildUserList(incomingMessage);
+						else if(incomingMessage.contains("/id"))
+							setID(incomingMessage);
 						else if(incomingMessage.contains("/update"))
 							updateUser(incomingMessage);
 						else if(incomingMessage.contains("/remove"))
@@ -135,6 +136,10 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		    public void windowOpened( WindowEvent e )
 		    {
 		        messageField.requestFocus();
+		    }
+		    public void windowClosed( WindowEvent e )
+		    {
+		    	disconnect();
 		    }
 		}); 
 	}
@@ -209,6 +214,12 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		((JTextArea)((JViewport)chatText.getComponent(0)).getView()).setText(((JTextArea)((JViewport)chatText.getComponent(0)).getView()).getText() + message + "\n");
 	}
 	
+	public void setID(String userString)
+	{
+		userString = userString.substring(4);
+		id = Integer.parseInt(userString);
+	}
+	
 	public void buildUserList(String userString)
 	{
 		userList.clear();
@@ -218,9 +229,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		for(int i = 0; i < (users.length)/2; i++)
 			userList.add(new User(Integer.parseInt(users[i*2]), users[i*2+1]));
-		
-		if(id < 0)
-			id = userList.get(userList.size()-1).getId();
 		
 		orderUsers();
 	}
