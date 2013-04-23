@@ -56,6 +56,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static InputStream inStream;
 	public static ByteArrayOutputStream baos;
 	public static int numBytes = 0;
+	public Thread t1;
 	
 	public static int id;
 	public static String username = "JC-User";
@@ -74,16 +75,14 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		add(leftPanel);
 		add(rightPanel);
-		
-		ConnectionGUI cGUI = new ConnectionGUI();
-		
-		cGUI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		cGUI.setSize(300, 250);
-		cGUI.setResizable(false);
-		cGUI.setVisible(true);
-		
-		while(!connectionGUIStatus);
-		
+		while(!connectionGUIStatus)
+		{
+			try 
+			{
+				Thread.sleep((long)0.001);
+			} catch (InterruptedException e1) { e1.printStackTrace(); }
+		}
+
 		try
 		{
 			clientSocket = new Socket(Resource.IP, Integer.parseInt(Resource.PORT));
@@ -91,25 +90,27 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			bReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
 			pWriter.println("/connected " + username);
+			
 		}
 		catch (Exception e) { e.printStackTrace(); }
 
 		
-		Thread t1 = (new Thread()
+		t1 = (new Thread()
 		{
 			@Override
 			public void run()
 			{
 				while(true)
 				{
-					String incomingMessage = null;
+					String incomingMessage = "";
 					try
 					{
-						incomingMessage = bReader.readLine();
+						if(bReader != null && bReader.ready())
+							incomingMessage = bReader.readLine();
 					}
 					catch(Exception e) { e.printStackTrace(); }
 					
-					if(!incomingMessage.equals(null))
+					if(!incomingMessage.equals(""))
 					{
 						System.out.println("Message: " + incomingMessage);
 						if(incomingMessage.contains("/userlist"))
@@ -127,7 +128,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			}
 		});
 		t1.start();
-
+		
 		this.addWindowListener(new WindowAdapter()
 		{
 		    public void windowOpened( WindowEvent e )
@@ -325,6 +326,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		return null;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void disconnect()
 	{
 		pWriter.println("/disconnect " + id);
@@ -334,11 +336,13 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			bReader.close();
 			pWriter.close();
 			clientSocket.close();
+			
 		}
 		catch(Exception e) { e.printStackTrace(); }
 		
 		setVisible(false);
 		dispose();
+		System.exit(0);
 	}
 	
 	@Override
