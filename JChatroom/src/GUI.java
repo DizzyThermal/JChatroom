@@ -58,7 +58,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static int numBytes = 0;
 	public Thread t1;
 	
-	public static int id;
+	public static int id = -1;
 	public static String username = "JC-User";
 	
 	public static boolean connectionGUIStatus = false;
@@ -208,7 +208,9 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		for(int i = 0; i < (users.length)/2; i++)
 			userList.add(new User(Integer.parseInt(users[i*2]), users[i*2+1]));
 		
-		id = userList.get(userList.size()-1).getId();
+		if(id < 0)
+			id = userList.get(userList.size()-1).getId();
+		
 		orderUsers();
 	}
 	
