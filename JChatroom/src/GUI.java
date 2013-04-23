@@ -200,6 +200,8 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	
 	public void buildUserList(String userString)
 	{
+		userList.clear();
+
 		userString = userString.substring(10);
 		String[] users = userString.split("\\\\");
 		
