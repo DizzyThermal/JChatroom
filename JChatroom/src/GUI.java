@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -49,6 +50,10 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static Socket clientSocket;
 	public static PrintWriter pWriter;
 	public static BufferedReader bReader;
+	public static Socket fileSocket;
+	public static PrintWriter pfWriter;
+	public static BufferedReader bfReader;
+
 	
 	public final JFileChooser filePick = new JFileChooser();
 	public static File outFile;
@@ -121,7 +126,13 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 						else if(incomingMessage.contains("/msg"))
 							addMessageToChat(incomingMessage, true);
 						else if(incomingMessage.contains("/file"))
-							receiveFile(incomingMessage);
+						{
+							try 
+							{
+								createFileThread(incomingMessage);
+							} catch (Exception e) { e.printStackTrace(); }
+						}
+							//receiveFile(incomingMessage);
 						else if(incomingMessage.contains("/console"))
 							addMessageToChat(incomingMessage, false);
 					}
@@ -141,6 +152,30 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		    	disconnect();
 		    }
 		}); 
+	}
+	
+	public void createFileThread(final String incomingMessage) throws Exception
+	{
+		fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT) + id*2);
+		System.out.println(fileSocket.toString());
+		pWriter = new PrintWriter(fileSocket.getOutputStream(), true);
+		bReader = new BufferedReader(new InputStreamReader(fileSocket.getInputStream()));
+		Thread fileThread = new Thread()
+		{
+			public void run()
+			{				
+				while(!fileSocket.isClosed())
+				{
+				try
+				{
+					if(bfReader != null && bfReader.ready())
+						receiveFile(incomingMessage);
+						
+				}	catch(Exception e) { e.printStackTrace(); }
+				}	
+			}
+		};
+		fileThread.start();
 	}
 	
 	public void createLeftPanel()
@@ -305,7 +340,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	{
 		int id = Integer.parseInt(incomingMessage.substring(6).split("\\\\")[0]);
 		String fileName = incomingMessage.substring(6).split("\\\\")[1];
-		
 		byte[] incomingBytes = new byte[1];
 		try
 		{
@@ -320,7 +354,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			BufferedOutputStream bos = null;
 			try
 			{
-				fos = new FileOutputStream(Resource.FILE_SAVE_DIR);
+				fos = new FileOutputStream(Resource.FILE_SAVE_DIR + "/" + fileName);
 				bos = new BufferedOutputStream(fos);
 				numBytes = inStream.read(incomingBytes, 0, incomingBytes.length);
 				do
@@ -407,12 +441,13 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	{
 		if (e.getSource() == addFileButton)
 		{
-			if (filePick.showOpenDialog(this) != 0)
+			if (filePick.showOpenDialog(this) == 0)
 			{
 				outFile = filePick.getSelectedFile();
 				try 
 				{
-					bOut = new BufferedOutputStream(clientSocket.getOutputStream());
+					fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT));
+					bOut = new BufferedOutputStream(fileSocket.getOutputStream());
 				} 
 				catch (IOException e1) { e1.printStackTrace(); }
 				if (bOut != null)
@@ -429,10 +464,11 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		                try 
 		                {
 		                    bis.read(outArray, 0, outArray.length);
-		                    pWriter.println("/file " + id + "\\" + outFile.getName());
+							pWriter.println("/file " + id + "\\" + outFile.getName());
 		                    bOut.write(outArray, 0, outArray.length);
 		                    bOut.flush();
 		                    bOut.close();
+		                    fileSocket.close();
 		                } catch (IOException ex) { ex.printStackTrace(); }
 				}
 			}	
