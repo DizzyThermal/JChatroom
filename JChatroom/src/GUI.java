@@ -98,7 +98,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			@Override
 			public void run()
 			{
-				while(true)
+				while(this.isAlive())
 				{
 					String incomingMessage = "";
 					try
@@ -349,11 +349,10 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		return null;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void disconnect()
 	{
 		pWriter.println("/disconnect " + id);
-		
+		t1.stop();
 		try
 		{
 			bReader.close();
