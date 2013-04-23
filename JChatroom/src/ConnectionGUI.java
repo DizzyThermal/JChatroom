@@ -55,26 +55,31 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 		mainPanel.add(nameLabel);
 		name.setPreferredSize(new Dimension(250, 20));
 		name.setText(Resource.USERNAME);
+		name.addKeyListener(this);
 		mainPanel.add(name);
 		
 		addressLabel.setPreferredSize(new Dimension(250, 20));
 		mainPanel.add(addressLabel);
 		address.setPreferredSize(new Dimension(250, 20));
 		address.setText(Resource.IP);
+		address.addKeyListener(this);
 		mainPanel.add(address);
 		
 		portLabel.setPreferredSize(new Dimension(250, 20));
 		mainPanel.add(portLabel);
 		port.setPreferredSize(new Dimension(250, 20));
+		port.addKeyListener(this);
 		mainPanel.add(port);
 		
 		downloadLabel.setPreferredSize(new Dimension(250, 20));
 		mainPanel.add(downloadLabel);
 		download.setPreferredSize(new Dimension(250, 20));
 		download.setText(Resource.FILE_SAVE_DIR);
+		download.addKeyListener(this);
 		mainPanel.add(download);
 		
 		mainPanel.add(okButton);
+		mainPanel.addKeyListener(this);
 		okButton.addActionListener(this);
 	}
 

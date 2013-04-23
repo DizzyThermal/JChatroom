@@ -351,7 +351,8 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 
 	public void disconnect()
 	{
-		pWriter.println("/disconnect " + id);
+		if (pWriter != null)
+			pWriter.println("/disconnect " + id);
 		t1.stop();
 		try
 		{
