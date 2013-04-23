@@ -137,7 +137,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		    {
 		        messageField.requestFocus();
 		    }
-		    public void windowClosed( WindowEvent e )
+		    public void windowClosing( WindowEvent e )
 		    {
 		    	disconnect();
 		    }
