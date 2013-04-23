@@ -110,7 +110,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 					
 					if(!incomingMessage.equals(""))
 					{
-						System.out.println("Message: " + incomingMessage);
 						if(incomingMessage.contains("/userlist"))
 							buildUserList(incomingMessage);
 						else if(incomingMessage.contains("/id"))
