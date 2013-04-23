@@ -19,12 +19,14 @@ public class ConnectionGUI extends JFrame implements ActionListener
 	JPanel mainPanel = new JPanel();
 
 	JLabel titleLabel = new JLabel("Connection Information");
+	JLabel nameLabel = new JLabel("Username: ");
 	JLabel addressLabel = new JLabel("Address: ");
 	JLabel portLabel = new JLabel("Port: ");
 	JLabel downloadLabel = new JLabel("Download Save Directory: ");
 	
 	JButton okButton = new JButton("OK");
 	
+	JTextField name = new JTextField();
 	JTextField address = new JTextField();
 	JSpinner port = new JSpinner(new SpinnerNumberModel(8010, 0, 65535, 1));
 	JTextField download = new JTextField();
@@ -43,10 +45,16 @@ public class ConnectionGUI extends JFrame implements ActionListener
 	
 	public void createPanel()
 	{
-		mainPanel.setPreferredSize(new Dimension(300, 300));
+		mainPanel.setPreferredSize(new Dimension(300, 350));
 		titleLabel.setPreferredSize(new Dimension(300, 20));
 		titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
 		mainPanel.add(titleLabel);
+		
+		nameLabel.setPreferredSize(new Dimension(250, 20));
+		mainPanel.add(nameLabel);
+		name.setPreferredSize(new Dimension(250, 20));
+		name.setText(Resource.USERNAME);
+		mainPanel.add(name);
 		
 		addressLabel.setPreferredSize(new Dimension(250, 20));
 		mainPanel.add(addressLabel);
@@ -74,6 +82,7 @@ public class ConnectionGUI extends JFrame implements ActionListener
 	{
 		if(e.getSource() == okButton)
 		{
+			Resource.USERNAME = name.getText();
 			Resource.IP = address.getText();
 			Resource.PORT = String.valueOf(port.getValue());
 			Resource.FILE_SAVE_DIR = download.getText();

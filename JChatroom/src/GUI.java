@@ -59,7 +59,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public Thread t1;
 	
 	public static int id = -1;
-	public static String username = "JC-User";
 	
 	public static boolean connectionGUIStatus = false;
 	
@@ -89,7 +88,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			pWriter = new PrintWriter(clientSocket.getOutputStream(), true);
 			bReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
-			pWriter.println("/connected " + username);
+			pWriter.println("/connected " + Resource.USERNAME);
 			
 		}
 		catch (Exception e) { e.printStackTrace(); }
@@ -169,15 +168,15 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	{
 		if(message.contains("/name"))
 		{
-			username = message.substring(6);
-			if(username.charAt(0) == '"')
-				username = username.substring(1, username.length()-1);
-			pWriter.println("/name " + id + "\\\"" + username + "\"");
+			Resource.USERNAME = message.substring(6);
+			if(Resource.USERNAME.charAt(0) == '"')
+				Resource.USERNAME = Resource.USERNAME.substring(1, Resource.USERNAME.length()-1);
+			pWriter.println("/name " + id + "\\\"" + Resource.USERNAME + "\"");
 		}
 		else if(message.contains("/exit"))
 			disconnect();
 		else
-			pWriter.println(username + ": " + message);
+			pWriter.println(Resource.USERNAME + ": " + message);
 		
 		addCommand(message);
 		messageField.setText("");
