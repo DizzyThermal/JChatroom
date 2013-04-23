@@ -119,9 +119,11 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 						else if(incomingMessage.contains("/remove"))
 							removeUser(incomingMessage);
 						else if(incomingMessage.contains("/msg"))
-							addMessageToChat(incomingMessage);
+							addMessageToChat(incomingMessage, true);
 						else if(incomingMessage.contains("/file"))
 							receiveFile(incomingMessage);
+						else if(incomingMessage.contains("/console"))
+							addMessageToChat(incomingMessage, false);
 					}
 				}
 			}
@@ -191,9 +193,19 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		((JTextArea)((JViewport)users.getComponent(0)).getView()).setText(userString);
 	}
 	
-	public void addMessageToChat(String message)
+	public void addMessageToChat(String message, boolean console)
 	{
-		message = message.substring(5);
+		if(console)
+		{
+			message = message.substring(5);
+			String name = message.split(":")[0];
+			message = message.split(":")[1];
+			
+			message = name + ":" + message;
+		}
+		else
+			message = message.substring(9);
+
 		((JTextArea)((JViewport)chatText.getComponent(0)).getView()).setText(((JTextArea)((JViewport)chatText.getComponent(0)).getView()).getText() + message + "\n");
 	}
 	
@@ -328,7 +340,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		return null;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	public void disconnect()
 	{
