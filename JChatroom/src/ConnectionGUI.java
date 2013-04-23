@@ -82,7 +82,7 @@ public class ConnectionGUI extends JFrame implements ActionListener
 	{
 		if(e.getSource() == okButton)
 		{
-			Resource.USERNAME = name.getText();
+			Resource.USERNAME = name.getText().replace("/", "");
 			Resource.IP = address.getText();
 			Resource.PORT = String.valueOf(port.getValue());
 			Resource.FILE_SAVE_DIR = download.getText();
