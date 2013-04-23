@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -37,7 +38,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	JPanel leftPanel = new JPanel();
 	JScrollPane chatText = new JScrollPane(new JTextArea());
 	JTextField messageField = new JTextField();
-	JButton addImageButton = new JButton("Add Image");
+	JButton addFileButton = new JButton("Add File");
 	JPanel rightPanel = new JPanel();
 	JScrollPane users = new JScrollPane(new JTextArea()); 
 	
@@ -85,7 +86,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		try
 		{
-			clientSocket = new Socket("localhost", Integer.parseInt(Resource.PORT));
+			clientSocket = new Socket(Resource.IP, Integer.parseInt(Resource.PORT));
 			pWriter = new PrintWriter(clientSocket.getOutputStream(), true);
 			bReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
@@ -119,50 +120,13 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 							removeUser(incomingMessage);
 						else if(incomingMessage.contains("/msg"))
 							addMessageToChat(incomingMessage);
+						else if(incomingMessage.contains("/file"))
+							receiveFile(incomingMessage);
 					}
 				}
 			}
 		});
 		t1.start();
-		
-		Thread t2 = (new Thread()
-		{
-			@Override
-			public void run()
-			{
-				while(true)
-				{
-					byte[] incomingBytes = new byte[1];
-					try
-					{
-						inStream = clientSocket.getInputStream();
-					}
-					catch(Exception e) { e.printStackTrace(); }
-					
-					baos = new ByteArrayOutputStream();
-					if(!inStream.equals(null))
-					{
-						FileOutputStream fos = null;
-						BufferedOutputStream bos = null;
-						try
-						{
-							fos = new FileOutputStream(Resource.FILE_SAVE_DIR);
-							bos = new BufferedOutputStream(fos);
-							numBytes = inStream.read(incomingBytes, 0, incomingBytes.length);
-							do
-							{
-								baos.write(incomingBytes);
-								numBytes = inStream.read(incomingBytes);
-							} while (numBytes != -1);
-							bos.write(baos.toByteArray());
-							bos.flush();
-							bos.close();
-						} catch(IOException ex) { ex.printStackTrace(); }
-					}
-				}
-			}
-		});
-		t2.start();
 
 		this.addWindowListener(new WindowAdapter()
 		{
@@ -192,12 +156,12 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		users.setPreferredSize(new Dimension(175, 520));
 		((JTextArea)((JViewport)users.getComponent(0)).getView()).setEditable(false);
-		addImageButton.setPreferredSize(new Dimension(175, 25));
-		addImageButton.addActionListener(this);
-		addImageButton.setActionCommand("addFile");
+		addFileButton.setPreferredSize(new Dimension(175, 25));
+		addFileButton.addActionListener(this);
+		addFileButton.setActionCommand("addFile");
 		
 		rightPanel.add(users);
-		rightPanel.add(addImageButton);
+		rightPanel.add(addFileButton);
 	}
 
 	public void sendMessageToServer(String message)
@@ -314,6 +278,53 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		commands.add(command);
 	}
 	
+	public void receiveFile(String incomingMessage)
+	{
+		int id = Integer.parseInt(incomingMessage.substring(6).split("\\\\")[0]);
+		String fileName = incomingMessage.substring(6).split("\\\\")[1];
+		
+		byte[] incomingBytes = new byte[1];
+		try
+		{
+			inStream = clientSocket.getInputStream();
+		}
+		catch(Exception e) { e.printStackTrace(); }
+		
+		baos = new ByteArrayOutputStream();
+		if(!inStream.equals(null))
+		{
+			FileOutputStream fos = null;
+			BufferedOutputStream bos = null;
+			try
+			{
+				fos = new FileOutputStream(Resource.FILE_SAVE_DIR);
+				bos = new BufferedOutputStream(fos);
+				numBytes = inStream.read(incomingBytes, 0, incomingBytes.length);
+				do
+				{
+					baos.write(incomingBytes);
+					numBytes = inStream.read(incomingBytes);
+				} while (numBytes != -1);
+				bos.write(baos.toByteArray());
+				bos.flush();
+				bos.close();
+			} catch(IOException ex) { ex.printStackTrace(); }
+		}
+		
+		JOptionPane.showMessageDialog(this, "File: " + fileName + " received from \"" + getUserNameFromId(id) + "\"");
+	}
+	
+	public String getUserNameFromId(int id)
+	{
+		for(int i = 0; i < userList.size(); i++)
+		{
+			if(userList.get(i).getId() == id)
+				return userList.get(i).getName();
+		}
+		
+		return null;
+	}
+	
 	public void disconnect()
 	{
 		pWriter.println("/disconnect " + id);
@@ -368,7 +379,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e) 
 	{
-		if (e.getActionCommand().equals("addFile"))
+		if (e.getSource() == addFileButton)
 		{
 			if (filePick.showOpenDialog(this) != 0)
 			{
@@ -392,6 +403,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		                try 
 		                {
 		                    bis.read(outArray, 0, outArray.length);
+		                    pWriter.println("/file " + id + "\\" + outFile.getName());
 		                    bOut.write(outArray, 0, outArray.length);
 		                    bOut.flush();
 		                    bOut.close();
