@@ -57,7 +57,7 @@ public class UGUI extends JFrame implements KeyListener
 
 		try
 		{
-			clientSocket = new DatagramSocket();
+			clientSocket = new DatagramSocket(Integer.parseInt(Resource.UPORT));
 			IPAddress = InetAddress.getByName(Resource.IP);
 			String temp = "/connected " + Resource.USERNAME;
 			pWriter = temp.getBytes();
@@ -75,11 +75,12 @@ public class UGUI extends JFrame implements KeyListener
 				String incomingMessage = "";
 				while(this.isAlive())
 				{
+					bReader = new byte[1024];
 					receivePacket = new DatagramPacket(bReader, bReader.length);
 					try { clientSocket.receive(receivePacket); }
 					catch (IOException e) { e.printStackTrace(); }
-					incomingMessage = new String(receivePacket.getData());
-					//System.out.println(incomingMessage);
+					incomingMessage = new String(receivePacket.getData()).trim();
+					System.out.println(incomingMessage);
 					if(!incomingMessage.equals(""))
 					{
 						if(incomingMessage.contains("/userlist"))
