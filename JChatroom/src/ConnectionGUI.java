@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,7 +25,10 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 	JLabel nameLabel = new JLabel("Username: ");
 	JLabel addressLabel = new JLabel("Address: ");
 	JLabel portLabel = new JLabel("Port: ");
+	JLabel transferLabel = new JLabel("Transfer Type: ");
 	JLabel downloadLabel = new JLabel("Download Save Directory: ");
+	
+	String[] dataTypesStrings = { "TCP", "UDP" };
 	
 	JButton okButton = new JButton("OK");
 	
@@ -32,6 +36,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 	JTextField address = new JTextField();
 	JSpinner port = new JSpinner(new SpinnerNumberModel(8010, 0, 65535, 1));
 	JTextField download = new JTextField();
+	JComboBox dataTypes = new JComboBox(dataTypesStrings);
 	
 	ConnectionGUI()
 	{
@@ -46,7 +51,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 	
 	public void createPanel()
 	{
-		mainPanel.setPreferredSize(new Dimension(300, 350));
+		mainPanel.setPreferredSize(new Dimension(300, 410));
 		titleLabel.setPreferredSize(new Dimension(300, 20));
 		titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
 		mainPanel.add(titleLabel);
@@ -71,6 +76,12 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 		port.addKeyListener(this);
 		mainPanel.add(port);
 		
+		transferLabel.setPreferredSize(new Dimension(250, 20));
+		mainPanel.add(transferLabel);
+		dataTypes.setPreferredSize(new Dimension(250, 20));
+		dataTypes.addKeyListener(this);
+		mainPanel.add(dataTypes);
+		
 		downloadLabel.setPreferredSize(new Dimension(250, 20));
 		mainPanel.add(downloadLabel);
 		download.setPreferredSize(new Dimension(250, 20));
@@ -91,6 +102,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 			Resource.USERNAME = name.getText().replace("/", "");
 			Resource.IP = address.getText();
 			Resource.PORT = String.valueOf(port.getValue());
+			Resource.TRANSFER_TYPE = (String)dataTypes.getSelectedItem();
 			Resource.FILE_SAVE_DIR = download.getText();
 			this.setVisible(false);
 			GUI.connectionGUIStatus = true;
@@ -106,6 +118,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 			Resource.USERNAME = name.getText().replace("/", "");
 			Resource.IP = address.getText();
 			Resource.PORT = String.valueOf(port.getValue());
+			Resource.TRANSFER_TYPE = (String)dataTypes.getSelectedItem();
 			Resource.FILE_SAVE_DIR = download.getText();
 			this.setVisible(false);
 			GUI.connectionGUIStatus = true;

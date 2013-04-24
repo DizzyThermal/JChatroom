@@ -79,12 +79,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		add(leftPanel);
 		add(rightPanel);
 		while(!connectionGUIStatus)
-		{
-			try 
-			{
-				Thread.sleep((long)0.001);
-			} catch (InterruptedException e1) { e1.printStackTrace(); }
-		}
+			continue;
 
 		try
 		{
