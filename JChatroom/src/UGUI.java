@@ -1,44 +1,28 @@
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 
-public class GUI extends JFrame implements KeyListener, ActionListener
+public class UGUI extends JFrame implements KeyListener
 {
 	private static final long serialVersionUID = 1L;	
 	JPanel leftPanel = new JPanel();
 	JScrollPane chatText = new JScrollPane(new JTextArea());
 	JTextField messageField = new JTextField();
-	JButton addFileButton = new JButton("Add File");
 	JPanel rightPanel = new JPanel();
 	JScrollPane users = new JScrollPane(new JTextArea()); 
 	
@@ -46,26 +30,20 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static ArrayList<String> commands = new ArrayList<String>();
 	public static int commandHistory = 0;
 	
-	public static Socket clientSocket;
-	public static PrintWriter pWriter;
-	public static BufferedReader bReader;
-	public static ServerSocket fileListener;
-	public static Socket fileSocket;
-	public static PrintWriter pfWriter;
-	public static BufferedReader bfReader;
-
+	public static DatagramSocket clientSocket;
+	public static byte[] pWriter = new byte[1024];
+	public static byte[] bReader = new byte[1024];
+	InetAddress IPAddress;
+	DatagramPacket receivePacket;
+	DatagramPacket sendPacket;
 	
-	public final JFileChooser filePick = new JFileChooser();
-	public static File outFile;
-	public static BufferedOutputStream bOut;
-	public static InputStream inStream;
-	public static ByteArrayOutputStream baos;
-	public static int numBytes = 0;
 	public Thread t1;
 	
 	public static int id = -1;
 	
-	GUI()
+	public static boolean connectionGUIStatus = false;
+	
+	UGUI()
 	{
 		super("ECE 369 - JChatroom (" + Resource.VERSION_NUMBER + " - " + Resource.VERSION_CODENAME + ")");
 		FlowLayout fl = new FlowLayout();
@@ -79,12 +57,12 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 
 		try
 		{
-			clientSocket = new Socket(Resource.IP, Integer.parseInt(Resource.PORT));
-			pWriter = new PrintWriter(clientSocket.getOutputStream(), true);
-			bReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			
-			pWriter.println("/connected " + Resource.USERNAME);
-			
+			clientSocket = new DatagramSocket();
+			IPAddress = InetAddress.getByName(Resource.IP);
+			String temp = "/connected " + Resource.USERNAME;
+			pWriter = temp.getBytes();
+			sendPacket = new DatagramPacket(pWriter, pWriter.length, IPAddress, Integer.parseInt(Resource.UPORT));
+			clientSocket.send(sendPacket);
 		}
 		catch (Exception e) { e.printStackTrace(); }
 
@@ -94,16 +72,14 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			@Override
 			public void run()
 			{
+				String incomingMessage = "";
 				while(this.isAlive())
 				{
-					String incomingMessage = "";
-					try
-					{
-						if(bReader != null && bReader.ready())
-							incomingMessage = bReader.readLine();
-					}
-					catch(Exception e) { e.printStackTrace(); }
-					
+					receivePacket = new DatagramPacket(bReader, bReader.length);
+					try { clientSocket.receive(receivePacket); }
+					catch (IOException e) { e.printStackTrace(); }
+					incomingMessage = new String(receivePacket.getData());
+					//System.out.println(incomingMessage);
 					if(!incomingMessage.equals(""))
 					{
 						if(incomingMessage.contains("/userlist"))
@@ -116,14 +92,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 							removeUser(incomingMessage);
 						else if(incomingMessage.contains("/msg"))
 							addMessageToChat(incomingMessage, true);
-						else if(incomingMessage.contains("/file"))
-						{
-							try 
-							{
-								createFileThread(incomingMessage);
-							} catch (Exception e) { e.printStackTrace(); }
-						}
-							//receiveFile(incomingMessage);
 						else if(incomingMessage.contains("/console"))
 							addMessageToChat(incomingMessage, false);
 					}
@@ -145,38 +113,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		}); 
 	}
 	
-	public void createFileThread(final String incomingMessage) throws Exception
-	{
-		fileListener = new ServerSocket(Integer.parseInt(Resource.PORT) + id);
-		fileSocket = fileListener.accept();
-		//System.out.println(fileSocket.toString());
-		pfWriter = new PrintWriter(fileSocket.getOutputStream(), true);
-		bfReader = new BufferedReader(new InputStreamReader(fileSocket.getInputStream()));
-		Thread fileThread = new Thread()
-		{
-			public void run()
-			{				
-				while(!fileSocket.isClosed())
-				{
-					try
-					{
-						if(bfReader != null && bfReader.ready())
-							receiveFile(incomingMessage);
-							
-					}	catch(Exception e) { e.printStackTrace(); }
-				}
-				try {
-					fileListener.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				this.stop();
-			}
-		};
-		fileThread.start();
-	}
-	
 	public void createLeftPanel()
 	{
 		leftPanel.setPreferredSize(new Dimension(600, 600));
@@ -196,28 +132,29 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		users.setPreferredSize(new Dimension(175, 520));
 		((JTextArea)((JViewport)users.getComponent(0)).getView()).setEditable(false);
-		addFileButton.setPreferredSize(new Dimension(175, 25));
-		addFileButton.addActionListener(this);
-		addFileButton.setActionCommand("addFile");
 		
 		rightPanel.add(users);
-		rightPanel.add(addFileButton);
 	}
 
 	public void sendMessageToServer(String message)
 	{
+		try{
 		if(message.contains("/name"))
 		{
 			Resource.USERNAME = message.substring(6);
 			if(Resource.USERNAME.charAt(0) == '"')
 				Resource.USERNAME = Resource.USERNAME.substring(1, Resource.USERNAME.length()-1);
-			pWriter.println("/name " + id + "\\\"" + Resource.USERNAME + "\"");
+			sendPacket = new DatagramPacket(("/name " + id + "\\\"" + Resource.USERNAME + "\"").getBytes(),("/name " + id + "\\\"" + Resource.USERNAME + "\"").getBytes().length,IPAddress,Integer.parseInt(Resource.UPORT));
+			clientSocket.send(sendPacket);
 		}
 		else if(message.contains("/exit"))
 			disconnect();
 		else
-			pWriter.println(Resource.USERNAME + ": " + message);
-		
+		{
+			sendPacket = new DatagramPacket((Resource.USERNAME + ": " + message).getBytes(),(Resource.USERNAME + ": " + message).getBytes().length,IPAddress,Integer.parseInt(Resource.UPORT));
+			clientSocket.send(sendPacket);
+		}
+		} catch (Exception e){}
 		addCommand(message);
 		messageField.setText("");
 	}
@@ -334,45 +271,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		
 		commands.add(command);
 	}
-	
-	public void receiveFile(String incomingMessage)
-	{
-		int id = Integer.parseInt(incomingMessage.substring(6).split("\\\\")[0]);
-		String fileName = incomingMessage.substring(6).split("\\\\")[1];
-		byte[] incomingBytes = new byte[1];
-		File file = new File(Resource.FILE_SAVE_DIR + "/" + fileName);
-		try
-		{
-			inStream = fileSocket.getInputStream();
-		}
-		catch(Exception e) { e.printStackTrace(); }
 		
-		baos = new ByteArrayOutputStream();
-		if(!inStream.equals(null))
-		{
-			FileOutputStream fos = null;
-			BufferedOutputStream bos = null;
-			try
-			{
-				fos = new FileOutputStream(Resource.FILE_SAVE_DIR + "/" + fileName);
-				bos = new BufferedOutputStream(fos);
-				numBytes = inStream.read(incomingBytes, 0, incomingBytes.length);
-				do
-				{
-					baos.write(incomingBytes);
-					numBytes = inStream.read(incomingBytes);
-				} while (numBytes != -1);
-				inStream.close();
-				bos.write(baos.toByteArray());
-				bos.flush();
-				bos.close();
-				fileSocket.close();
-			} catch(IOException ex) { ex.printStackTrace(); }
-		}
-		
-		JOptionPane.showMessageDialog(this, "File: " + fileName + " received from \"" + getUserNameFromId(id) + "\"");
-	}
-	
 	public String getUserNameFromId(int id)
 	{
 		for(int i = 0; i < userList.size(); i++)
@@ -386,15 +285,15 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 
 	public void disconnect()
 	{
-		if (pWriter != null)
-			pWriter.println("/disconnect " + id);
+		sendPacket = new DatagramPacket(("/disconnect " + id).getBytes(),("/disconnect " + id).getBytes().length,IPAddress,Integer.parseInt(Resource.UPORT));
+		try 
+		{
+			clientSocket.send(sendPacket);
+		} catch (IOException e1) { e1.printStackTrace(); }
 		t1.stop();
 		try
 		{
-			bReader.close();
-			pWriter.close();
 			clientSocket.close();
-			
 		}
 		catch(Exception e) { e.printStackTrace(); }
 		
@@ -437,44 +336,4 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public void keyTyped(KeyEvent e) {}
 	@Override
 	public void keyReleased(KeyEvent e) {}
-
-	@Override
-	public void actionPerformed(ActionEvent e) 
-	{
-		if (e.getSource() == addFileButton)
-		{
-			if (filePick.showOpenDialog(this) == 0)
-			{
-				outFile = filePick.getSelectedFile();
-				pWriter.println("/file " + id + "\\" + outFile.getName());
-				try 
-				{
-					fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT)+10);
-					bOut = new BufferedOutputStream(fileSocket.getOutputStream());
-				} 
-				catch (IOException e1) { e1.printStackTrace(); }
-				if (bOut != null)
-				{
-					byte[] outArray = new byte[(int)outFile.length()];
-					FileInputStream fis = null;
-		               try 
-		               {
-		                    fis = new FileInputStream(outFile);
-		                } catch (FileNotFoundException ex) { ex.printStackTrace(); }
-		               
-		                BufferedInputStream bis = new BufferedInputStream(fis);
-
-		                try 
-		                {
-		                    bis.read(outArray, 0, outArray.length);
-		                    bOut.write(outArray, 0, outArray.length);
-		                    bOut.flush();
-		                    bOut.close();
-		                    fileSocket.close();
-		                } catch (IOException ex) { ex.printStackTrace(); }
-				}
-			}	
-		}
-		
-	}
 }

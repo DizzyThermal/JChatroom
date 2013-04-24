@@ -105,7 +105,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 			Resource.TRANSFER_TYPE = (String)dataTypes.getSelectedItem();
 			Resource.FILE_SAVE_DIR = download.getText();
 			this.setVisible(false);
-			GUI.connectionGUIStatus = true;
+			Main.connectionGUIStatus = true;
 		}
 	}
 
@@ -121,7 +121,7 @@ public class ConnectionGUI extends JFrame implements ActionListener, KeyListener
 			Resource.TRANSFER_TYPE = (String)dataTypes.getSelectedItem();
 			Resource.FILE_SAVE_DIR = download.getText();
 			this.setVisible(false);
-			GUI.connectionGUIStatus = true;
+			Main.connectionGUIStatus = true;
 		}
 	}
 
