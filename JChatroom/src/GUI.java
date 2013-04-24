@@ -6,7 +6,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -21,7 +20,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -158,9 +156,9 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	
 	public void createFileThread(final String incomingMessage) throws Exception
 	{
-		fileListener = new ServerSocket(8011);//Integer.parseInt(Resource.PORT) + id);
+		fileListener = new ServerSocket(Integer.parseInt(Resource.PORT) + id);
 		fileSocket = fileListener.accept();
-		System.out.println(fileSocket.toString());
+		//System.out.println(fileSocket.toString());
 		pfWriter = new PrintWriter(fileSocket.getOutputStream(), true);
 		bfReader = new BufferedReader(new InputStreamReader(fileSocket.getInputStream()));
 		Thread fileThread = new Thread()
@@ -169,13 +167,20 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			{				
 				while(!fileSocket.isClosed())
 				{
-				try
-				{
-					if(bfReader != null && bfReader.ready())
-						receiveFile(incomingMessage);
-						
-				}	catch(Exception e) { e.printStackTrace(); }
-				}	
+					try
+					{
+						if(bfReader != null && bfReader.ready())
+							receiveFile(incomingMessage);
+							
+					}	catch(Exception e) { e.printStackTrace(); }
+				}
+				try {
+					fileListener.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				this.stop();
 			}
 		};
 		fileThread.start();
@@ -344,6 +349,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		int id = Integer.parseInt(incomingMessage.substring(6).split("\\\\")[0]);
 		String fileName = incomingMessage.substring(6).split("\\\\")[1];
 		byte[] incomingBytes = new byte[1];
+		File file = new File(Resource.FILE_SAVE_DIR + "/" + fileName);
 		try
 		{
 			inStream = fileSocket.getInputStream();
@@ -365,9 +371,11 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 					baos.write(incomingBytes);
 					numBytes = inStream.read(incomingBytes);
 				} while (numBytes != -1);
+				inStream.close();
 				bos.write(baos.toByteArray());
 				bos.flush();
 				bos.close();
+				fileSocket.close();
 			} catch(IOException ex) { ex.printStackTrace(); }
 		}
 		
