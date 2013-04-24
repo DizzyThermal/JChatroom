@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	public static Socket clientSocket;
 	public static PrintWriter pWriter;
 	public static BufferedReader bReader;
+	public static ServerSocket fileListener;
 	public static Socket fileSocket;
 	public static PrintWriter pfWriter;
 	public static BufferedReader bfReader;
@@ -156,10 +158,11 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 	
 	public void createFileThread(final String incomingMessage) throws Exception
 	{
-		fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT) + id*2);
+		fileListener = new ServerSocket(8011);//Integer.parseInt(Resource.PORT) + id);
+		fileSocket = fileListener.accept();
 		System.out.println(fileSocket.toString());
-		pWriter = new PrintWriter(fileSocket.getOutputStream(), true);
-		bReader = new BufferedReader(new InputStreamReader(fileSocket.getInputStream()));
+		pfWriter = new PrintWriter(fileSocket.getOutputStream(), true);
+		bfReader = new BufferedReader(new InputStreamReader(fileSocket.getInputStream()));
 		Thread fileThread = new Thread()
 		{
 			public void run()
@@ -343,7 +346,7 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		byte[] incomingBytes = new byte[1];
 		try
 		{
-			inStream = clientSocket.getInputStream();
+			inStream = fileSocket.getInputStream();
 		}
 		catch(Exception e) { e.printStackTrace(); }
 		
@@ -444,9 +447,10 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			if (filePick.showOpenDialog(this) == 0)
 			{
 				outFile = filePick.getSelectedFile();
+				pWriter.println("/file " + id + "\\" + outFile.getName());
 				try 
 				{
-					fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT));
+					fileSocket = new Socket(Resource.IP,Integer.parseInt(Resource.PORT)+10);
 					bOut = new BufferedOutputStream(fileSocket.getOutputStream());
 				} 
 				catch (IOException e1) { e1.printStackTrace(); }
@@ -464,7 +468,6 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 		                try 
 		                {
 		                    bis.read(outArray, 0, outArray.length);
-							pWriter.println("/file " + id + "\\" + outFile.getName());
 		                    bOut.write(outArray, 0, outArray.length);
 		                    bOut.flush();
 		                    bOut.close();
