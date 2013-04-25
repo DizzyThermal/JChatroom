@@ -1,9 +1,9 @@
 public class Resource
 {
-	public static final String VERSION_NUMBER		= "v0.0.4";
-	public static final String VERSION_CODENAME		= "Dugtrio";
+	public static final String VERSION_NUMBER		= "v0.0.5";
+	public static final String VERSION_CODENAME		= "Exeggcute";
 	
-	public static String IP							= "192.168.1.100";//"localhost";
+	public static String IP							= "192.168.1.100";
 	public static String PORT						= "8010";
 	public static String UPORT						= "8015";
 	public static String TRANSFER_TYPE				= "TCP";

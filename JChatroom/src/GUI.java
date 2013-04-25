@@ -213,6 +213,8 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 				Resource.USERNAME = Resource.USERNAME.substring(1, Resource.USERNAME.length()-1);
 			pWriter.println("/name " + id + "\\\"" + Resource.USERNAME + "\"");
 		}
+		else if(message.contains("/clear"))
+			clearTextArea();
 		else if(message.contains("/exit"))
 			disconnect();
 		else
@@ -245,6 +247,11 @@ public class GUI extends JFrame implements KeyListener, ActionListener
 			message = message.substring(9);
 
 		((JTextArea)((JViewport)chatText.getComponent(0)).getView()).setText(((JTextArea)((JViewport)chatText.getComponent(0)).getView()).getText() + message + "\n");
+	}
+
+	public void clearTextArea()
+	{
+		((JTextArea)((JViewport)chatText.getComponent(0)).getView()).setText("");
 	}
 	
 	public void setID(String userString)
